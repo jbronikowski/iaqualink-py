@@ -16,6 +16,7 @@ from iaqualink.exception import (
 from iaqualink.system import AqualinkSystem
 from iaqualink.systems.iaqua.device import IaquaDevice
 from iaqualink.typing import Payload
+import sys
 
 if TYPE_CHECKING:
     from iaqualink.client import AqualinkClient
@@ -73,9 +74,10 @@ class IaquaSystem(AqualinkSystem):
         try:
             r = await self.aqualink.send_request(url)
             return r
-        except AqualinkServiceUnauthorizedException:
+        except:
             try:
                 # token expired so refresh the token and try again
+                LOGGER.debug(sys.exc_info())
                 await self.aqualink.login()
                 r = await self.aqualink.send_request(url)
                 return r
