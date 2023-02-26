@@ -11,6 +11,7 @@ from iaqualink.exception import (
     AqualinkDeviceNotSupported,
     AqualinkServiceException,
     AqualinkSystemOfflineException,
+    AqualinkServiceUnauthorizedException
 )
 from iaqualink.system import AqualinkSystem
 from iaqualink.systems.iaqua.device import IaquaDevice
@@ -69,7 +70,17 @@ class IaquaSystem(AqualinkSystem):
         )
         params_str = "&".join(f"{k}={v}" for k, v in params.items())
         url = f"{IAQUA_SESSION_URL}?{params_str}"
-        return await self.aqualink.send_request(url)
+        try:
+            r = await self.aqualink.send_request(url)
+            return r
+        except AqualinkServiceUnauthorizedException:
+            try:
+                # token expired so refresh the token and try again
+                await self.aqualink.login()
+                r = await self.aqualink.send_request(url)
+                return r
+            except:
+                raise
 
     async def _send_home_screen_request(self) -> httpx.Response:
         r = await self._send_session_request(IAQUA_COMMAND_GET_HOME)
