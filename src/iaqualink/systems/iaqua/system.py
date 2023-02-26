@@ -73,11 +73,13 @@ class IaquaSystem(AqualinkSystem):
         url = f"{IAQUA_SESSION_URL}?{params_str}"
         try:
             r = await self.aqualink.send_request(url)
+            LOGGER.debug('Successful request above')
             return r
         except:
             try:
                 # token expired so refresh the token and try again
                 LOGGER.debug(sys.exc_info())
+                LOGGER.info('token expired so refresh the token and try again')
                 await self.aqualink.login()
                 r = await self.aqualink.send_request(url)
                 return r
